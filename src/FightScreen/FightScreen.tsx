@@ -47,7 +47,7 @@ export default function FightScreen() {
   return (
     <div
       style={{ backgroundImage: `url(${backgroundImageUrl})` }}
-      className="h-full bg-center flex flex-col justify-center items-center"
+      className="h-full bg-center bg-no-repeat bg-cover flex flex-col justify-center items-center"
     >
       {step === 0 && (
         <div className="border-[5px] rounded-[10px] border-[#D55CFF] px-8 py-6 w-1/2 bg-white">
