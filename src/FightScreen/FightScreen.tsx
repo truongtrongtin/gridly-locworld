@@ -20,7 +20,7 @@ export type Player = {
   name: string;
   health: number;
   strength: number;
-  imageUrl: string;
+  detail: any;
 };
 
 type FightResult = {
@@ -128,23 +128,21 @@ export default function FightScreen() {
     );
     if (!playerRecord) return player;
 
-    const playerImage =
-      playerRecord.cells.find((cell) => cell.columnId === "fighter_image")
-        ?.value[0] || "";
+    const playerDetail = playerRecord.cells.reduce((result, cell) => {
+      return { ...result, [cell.columnId]: cell.value };
+    }, {});
 
-    return {
-      ...player,
-      detail: playerRecord,
-      imageUrl: getPublicImageUrl(playerImage),
-    };
+    return { ...player, detail: playerDetail };
   });
 
   const winner = players.find(
     (player) => player.name === fightResult.winner_name
   );
 
-  // console.log(fightResult);
-  // console.log(players);
+  if (import.meta.env.DEV) {
+    console.log(fightResult);
+    console.log(players);
+  }
 
   return (
     <div
@@ -169,20 +167,33 @@ export default function FightScreen() {
       )}
       {step === 0 && (
         <motion.div className="border-[5px] rounded-[10px] border-[#D55CFF] px-8 py-6 w-1/2 bg-white">
-          <AnimatedText text={storyText} className="text-xl" />
+          <AnimatedText text={storyText} className="text-2xl" />
         </motion.div>
       )}
       {step === 1 && (
-        <div className="flex gap-40">
+        <div className="flex gap-[300px]">
           {players.map((player) => (
-            <PlayerItem key={player.name} player={player} />
+            <PlayerItem
+              key={player.name}
+              name={player.name}
+              imageUrl={getPublicImageUrl(player.detail["fighter_image"][0])}
+              health={player.health}
+              strength={player.strength}
+              quote={player.detail["fighter_battle_cry"]}
+            />
           ))}
         </div>
       )}
       {step === 2 && (
-        <div className="flex gap-40 relative">
+        <div className="flex gap-[300px] relative">
           {players.map((player) => (
-            <PlayerItem key={player.name} player={player} />
+            <PlayerItem
+              key={player.name}
+              name={player.name}
+              imageUrl={getPublicImageUrl(player.detail["fighter_image"][0])}
+              health={player.health}
+              strength={player.strength}
+            />
           ))}
           <img
             src={fight}
@@ -193,7 +204,15 @@ export default function FightScreen() {
       {step === 3 && (
         <div className="flex flex-col items-center gap-10">
           <img src={youWin} />
-          {winner && <PlayerItem player={winner} />}
+          {winner && (
+            <PlayerItem
+              key={winner.name}
+              name={winner.name}
+              imageUrl={getPublicImageUrl(winner.detail["fighter_image"][0])}
+              health={winner.health}
+              strength={winner.strength}
+            />
+          )}
         </div>
       )}
     </div>

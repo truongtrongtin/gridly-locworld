@@ -10,7 +10,9 @@ export const Screen = {
 export type Screen = (typeof Screen)[keyof typeof Screen];
 
 function App() {
-  const [screen, setScreen] = useState<Screen>(Screen.START);
+  const [screen, setScreen] = useState<Screen>(
+    import.meta.env.DEV ? Screen.FIGHT : Screen.START
+  );
 
   switch (screen) {
     case Screen.START:
