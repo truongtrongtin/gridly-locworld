@@ -88,17 +88,17 @@ export default function FightScreen() {
     fetchCharacterData();
   }, []);
 
-  useEffect(() => {
-    if (import.meta.env.DEV) return;
-    const interval = setInterval(() => {
-      if (stepRef.current >= 3) {
-        clearInterval(interval);
-      } else {
-        setStep((step) => step + 1);
-      }
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  // useEffect(() => {
+  //   if (import.meta.env.DEV) return;
+  //   const interval = setInterval(() => {
+  //     if (stepRef.current >= 3) {
+  //       clearInterval(interval);
+  //     } else {
+  //       setStep((step) => step + 1);
+  //     }
+  //   }, 5000);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   if (!gameRecords || !characterRecords) return null;
 
@@ -149,22 +149,20 @@ export default function FightScreen() {
       style={{ backgroundImage: `url(${environmentImageUrl})` }}
       className="h-full bg-center bg-no-repeat bg-cover flex flex-col justify-center items-center"
     >
-      {import.meta.env.DEV && (
-        <>
-          <button
-            onClick={() => setStep((currentStep) => currentStep - 1)}
-            className="text-white"
-          >
-            Back
-          </button>
-          <button
-            onClick={() => setStep((currentStep) => currentStep + 1)}
-            className="text-white"
-          >
-            Next
-          </button>
-        </>
-      )}
+      <div className="top-10 absolute flex gap-3">
+        <button
+          onClick={() => setStep((currentStep) => Math.max(currentStep - 1, 0))}
+          className="text-black border rounded bg-white p-2"
+        >
+          Back
+        </button>
+        <button
+          onClick={() => setStep((currentStep) => Math.min(currentStep + 1, 3))}
+          className="text-black border rounded bg-white p-2"
+        >
+          Next
+        </button>
+      </div>
       {step === 0 && (
         <motion.div className="border-[5px] rounded-[10px] border-[#D55CFF] px-8 py-6 w-1/2 bg-white">
           <AnimatedText text={storyText} className="text-2xl" />
