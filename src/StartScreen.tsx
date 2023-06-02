@@ -1,4 +1,5 @@
 import startButton from "./assets/start-button.svg";
+import { motion } from "framer-motion";
 
 type StartScreenProps = {
   onStart: () => void;
@@ -13,9 +14,11 @@ export default function StartScreen({ onStart }: StartScreenProps) {
       <div className="h-full flex justify-center items-center">
         <div className="text-center">
           <h1 className="text-white uppercase text-9xl">Gridly game</h1>
-          <button onClick={onStart} className="mt-10">
-            <img src={startButton} className="w-[200px]" />
-          </button>
+          <motion.div animate={{ opacity: 1 }} transition={{ duration: 1 }}>
+            <button onClick={onStart} className="mt-10">
+              <img src={startButton} className="w-[200px]" />
+            </button>
+          </motion.div>
         </div>
       </div>
     </div>
