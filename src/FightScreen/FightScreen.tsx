@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import fight from "../assets/fight.png";
 import youWin from "../assets/you-win.png";
@@ -131,12 +132,19 @@ export default function FightScreen() {
       playerRecord.cells.find((cell) => cell.columnId === "fighter_image")
         ?.value[0] || "";
 
-    return { ...player, imageUrl: getPublicImageUrl(playerImage) };
+    return {
+      ...player,
+      detail: playerRecord,
+      imageUrl: getPublicImageUrl(playerImage),
+    };
   });
 
   const winner = players.find(
     (player) => player.name === fightResult.winner_name
   );
+
+  // console.log(fightResult);
+  // console.log(players);
 
   return (
     <div
@@ -160,9 +168,9 @@ export default function FightScreen() {
         </>
       )}
       {step === 0 && (
-        <div className="border-[5px] rounded-[10px] border-[#D55CFF] px-8 py-6 w-1/2 bg-white">
+        <motion.div className="border-[5px] rounded-[10px] border-[#D55CFF] px-8 py-6 w-1/2 bg-white">
           <AnimatedText text={storyText} className="text-xl" />
-        </div>
+        </motion.div>
       )}
       {step === 1 && (
         <div className="flex gap-40">
