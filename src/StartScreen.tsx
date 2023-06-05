@@ -13,7 +13,7 @@ export default function StartScreen({ onStart }: StartScreenProps) {
       </p>
       <div className="h-full flex justify-center items-center">
         <div className="text-center">
-          <h1 className="text-white uppercase text-9xl">Gridly game</h1>
+          <h1 className="text-white uppercase text-9xl">Fantasy Fight</h1>
           <motion.div animate={{ opacity: 1 }} transition={{ duration: 1 }}>
             <button onClick={onStart} className="mt-10">
               <img src={startButton} className="w-[200px]" />
