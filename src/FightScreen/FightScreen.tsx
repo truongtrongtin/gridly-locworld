@@ -1,6 +1,7 @@
 import { motion, useAnimate } from "framer-motion";
 import { useEffect, useState } from "react";
 import fight from "../assets/fight.png";
+import hallOfFame from "../assets/hall-of-fame.svg";
 import playerCard from "../assets/player-card.svg";
 import youWin from "../assets/you-win.png";
 import useImagePreloader from "../hooks/use-image-preloader";
@@ -42,11 +43,13 @@ type FightResult = {
 };
 
 type GameData = {
-  battle_story_generation: string;
+  story_translate: string;
   environment_image: string[];
-  fight_result: {
-    result: FightResult;
-  };
+  fight_result: FightResult;
+};
+
+type FightScreenProps = {
+  onHallClick: () => void;
 };
 
 function getPublicImageUrl(imageName: string) {
@@ -57,7 +60,7 @@ function getPublicImageUrl(imageName: string) {
   return `https://api.gridly.com/gridly/api/v1/databases/tz8bj4npq6rf8/files/${imageName}?${query}`;
 }
 
-export default function FightScreen() {
+export default function FightScreen({ onHallClick }: FightScreenProps) {
   const [gameData, setGameData] = useState<GameData>();
   const [firstPlayer, setFirstPlayer] = useState<Player>();
   const [secondPlayer, setSecondPlayer] = useState<Player>();
@@ -104,12 +107,15 @@ export default function FightScreen() {
           )?.[0]
           .cells.reduce((result, cell) => {
             if (cell.columnId === "fight_result") {
-              return { ...result, [cell.columnId]: JSON.parse(cell.value) };
+              return {
+                ...result,
+                [cell.columnId]: JSON.parse(cell.value).result,
+              };
             }
             return { ...result, [cell.columnId]: cell.value };
           }, {} as GameData);
 
-        const players = gameData.fight_result.result.players.map((player) => {
+        const players = gameData.fight_result.players.map((player) => {
           const playerRecord = (characterRecords as Record[]).find((record) =>
             (record?.cells || []).find((cell) => cell?.value === player.name)
           );
@@ -135,8 +141,28 @@ export default function FightScreen() {
     fetchData();
   }, []);
 
+  const environmentImageUrl = getPublicImageUrl(
+    gameData?.environment_image?.[0] || ""
+  );
+  const firstPlayerImageUrl = getPublicImageUrl(
+    firstPlayer?.detail?.["fighter_image"]?.[0] || ""
+  );
+  const secondPlayerImageUrl = getPublicImageUrl(
+    secondPlayer?.detail?.["fighter_image"]?.[0] || ""
+  );
+
+  const { imagesPreloaded } = useImagePreloader([
+    fight,
+    playerCard,
+    youWin,
+    environmentImageUrl,
+    firstPlayerImageUrl,
+    secondPlayerImageUrl,
+  ]);
+
   useEffect(() => {
     if (import.meta.env.DEV) return;
+    if (!imagesPreloaded) return;
     if (step === 0) {
       setTimeout(() => {
         setStep(1);
@@ -160,26 +186,7 @@ export default function FightScreen() {
         setStep(4);
       }, 20000);
     }
-  }, [step]);
-
-  const environmentImageUrl = getPublicImageUrl(
-    gameData?.environment_image?.[0] || ""
-  );
-  const firstPlayerImageUrl = getPublicImageUrl(
-    firstPlayer?.detail?.["fighter_image"]?.[0] || ""
-  );
-  const secondPlayerImageUrl = getPublicImageUrl(
-    secondPlayer?.detail?.["fighter_image"]?.[0] || ""
-  );
-
-  const { imagesPreloaded } = useImagePreloader([
-    fight,
-    playerCard,
-    youWin,
-    environmentImageUrl,
-    firstPlayerImageUrl,
-    secondPlayerImageUrl,
-  ]);
+  }, [step, imagesPreloaded]);
 
   useEffect(() => {
     if (
@@ -189,7 +196,7 @@ export default function FightScreen() {
       !firstPlayer
     )
       return;
-    const rounds = gameData?.fight_result?.result?.rounds || [];
+    const rounds = gameData?.fight_result?.rounds || [];
     const fight = async () => {
       for (let i = 0; i < rounds.length; i++) {
         const round = rounds[i];
@@ -241,7 +248,7 @@ export default function FightScreen() {
     );
 
   const winner =
-    firstPlayer.name === gameData.fight_result.result.winner_name
+    firstPlayer.name === gameData.fight_result.winner_name
       ? firstPlayer
       : secondPlayer;
 
@@ -250,6 +257,14 @@ export default function FightScreen() {
       style={{ backgroundImage: `url(${environmentImageUrl})` }}
       className="h-full bg-center bg-no-repeat bg-cover flex flex-col justify-center items-center"
     >
+      <motion.button
+        whileHover={{ scale: 1.2 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={onHallClick}
+        className="absolute top-10 right-10"
+      >
+        <img src={hallOfFame} />
+      </motion.button>
       {import.meta.env.DEV && (
         <div className="top-10 absolute flex gap-3">
           <button
@@ -272,10 +287,7 @@ export default function FightScreen() {
       )}
       {step === 0 && (
         <motion.div className="border-[5px] rounded-[10px] border-[#D55CFF] px-8 py-6 w-1/2 bg-white">
-          <AnimatedText
-            text={gameData.battle_story_generation}
-            className="text-2xl"
-          />
+          <AnimatedText text={gameData.story_translate} className="text-2xl" />
         </motion.div>
       )}
       {step === 1 && (
@@ -364,18 +376,16 @@ export default function FightScreen() {
         <div className="flex flex-col items-center gap-10">
           <motion.img
             src={youWin}
-            animate={{ scale: [1, 2, 1] }}
+            animate={{ scale: [1, 1.4, 1] }}
             transition={{ duration: 1 }}
           />
-          {winner && (
-            <PlayerItem
-              key={winner.name}
-              name={winner.name}
-              imageUrl={secondPlayerImageUrl}
-              health={winner.health}
-              strength={winner.strength}
-            />
-          )}
+          <PlayerItem
+            key={winner.name}
+            name={winner.name}
+            imageUrl={secondPlayerImageUrl}
+            health={winner.health}
+            strength={winner.strength}
+          />
         </div>
       )}
     </div>
