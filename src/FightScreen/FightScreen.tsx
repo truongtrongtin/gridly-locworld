@@ -135,22 +135,36 @@ export default function FightScreen() {
     fetchData();
   }, []);
 
-  // useEffect(() => {
-  //   if (import.meta.env.DEV) return;
-  //   const interval = setInterval(() => {
-  //     if (stepRef.current >= 3) {
-  //       clearInterval(interval);
-  //     } else {
-  //       setStep((step) => step + 1);
-  //     }
-  //   }, 5000);
-  //   return () => clearInterval(interval);
-  // }, []);
+  useEffect(() => {
+    if (import.meta.env.DEV) return;
+    if (step === 0) {
+      setTimeout(() => {
+        setStep(1);
+      }, 10000);
+    }
+
+    if (step === 1) {
+      setTimeout(() => {
+        setStep(2);
+      }, 10000);
+    }
+
+    if (step === 2) {
+      setTimeout(() => {
+        setStep(3);
+      }, 5000);
+    }
+
+    if (step === 3) {
+      setTimeout(() => {
+        setStep(4);
+      }, 20000);
+    }
+  }, [step]);
 
   const environmentImageUrl = getPublicImageUrl(
     gameData?.environment_image?.[0] || ""
   );
-
   const firstPlayerImageUrl = getPublicImageUrl(
     firstPlayer?.detail?.["fighter_image"]?.[0] || ""
   );
@@ -171,49 +185,38 @@ export default function FightScreen() {
     if (
       !firstPlayerRef.current ||
       !secondPlayerRef.current ||
-      !firstPlayer ||
-      !secondPlayer ||
-      !gameData
+      !gameData ||
+      !firstPlayer
     )
       return;
-    const yeahh = async () => {
-      for (const round of gameData?.fight_result.result.rounds || []) {
-        console.log(round.attacker === firstPlayer?.name);
-        if (round.attacker === firstPlayer?.name) {
+    const rounds = gameData?.fight_result?.result?.rounds || [];
+    const fight = async () => {
+      for (let i = 0; i < rounds.length; i++) {
+        const round = rounds[i];
+        console.log("round", round);
+        if (round.attacker === firstPlayer.name) {
           await animateFirstPlayer(
             firstPlayerRef.current,
-            { x: [null, 300, 0] },
             {
-              duration: 0.2,
-              delay: 1,
-              onComplete: () => {
-                setSecondPlayer({
-                  ...secondPlayer,
-                  health: secondPlayer.health - round.damage_dealt,
-                });
-              },
-            }
+              x: [null, 300, 0],
+              ...(round.is_critical ? { scale: [1.5, 1.5, 1] } : {}),
+            },
+            { duration: 0.3, delay: 1 }
           );
         } else {
           await animateSecondPlayer(
             secondPlayerRef.current,
-            { x: [null, -300, 0] },
             {
-              duration: 0.2,
-              delay: 1,
-              onComplete: () => {
-                setFirstPlayer({
-                  ...firstPlayer,
-                  health: firstPlayer.health - round.damage_dealt,
-                });
-              },
-            }
+              x: [null, -300, 0],
+              ...(round.is_critical ? { scale: [1.5, 1.5, 1] } : {}),
+            },
+            { duration: 0.3, delay: 1 }
           );
         }
       }
     };
 
-    yeahh();
+    fight();
   }, [
     firstPlayerRef,
     secondPlayerRef,
@@ -222,8 +225,6 @@ export default function FightScreen() {
     step,
     gameData,
     firstPlayer,
-    secondPlayer,
-    imagesPreloaded,
   ]);
 
   if (import.meta.env.DEV) {
@@ -249,20 +250,26 @@ export default function FightScreen() {
       style={{ backgroundImage: `url(${environmentImageUrl})` }}
       className="h-full bg-center bg-no-repeat bg-cover flex flex-col justify-center items-center"
     >
-      <div className="top-10 absolute flex gap-3">
-        <button
-          onClick={() => setStep((currentStep) => Math.max(currentStep - 1, 0))}
-          className="text-black border rounded bg-white p-2"
-        >
-          Back
-        </button>
-        <button
-          onClick={() => setStep((currentStep) => Math.min(currentStep + 1, 4))}
-          className="text-black border rounded bg-white p-2"
-        >
-          Next
-        </button>
-      </div>
+      {import.meta.env.DEV && (
+        <div className="top-10 absolute flex gap-3">
+          <button
+            onClick={() =>
+              setStep((currentStep) => Math.max(currentStep - 1, 0))
+            }
+            className="text-black border rounded bg-white p-2"
+          >
+            Back
+          </button>
+          <button
+            onClick={() =>
+              setStep((currentStep) => Math.min(currentStep + 1, 4))
+            }
+            className="text-black border rounded bg-white p-2"
+          >
+            Next
+          </button>
+        </div>
+      )}
       {step === 0 && (
         <motion.div className="border-[5px] rounded-[10px] border-[#D55CFF] px-8 py-6 w-1/2 bg-white">
           <AnimatedText
