@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import playerCard from "../assets/player-card.svg";
 import { motion } from "framer-motion";
 
@@ -9,15 +10,12 @@ type PlayerItemProps = {
   quote?: string;
 };
 
-export default function PlayerItem({
-  name,
-  imageUrl,
-  health,
-  strength,
-  quote,
-}: PlayerItemProps) {
+const PlayerItem = forwardRef<HTMLDivElement, PlayerItemProps>(function (
+  { name, imageUrl, health, strength, quote },
+  ref
+) {
   return (
-    <div className="relative">
+    <div className="relative" ref={ref}>
       {quote && (
         <motion.div className="w-[150%] absolute -top-2 -translate-y-full left-[50%] -translate-x-1/2 border-[5px] rounded-[10px] border-[#D55CFF] px-8 py-6 bg-white text-xl">
           {quote}
@@ -39,4 +37,6 @@ export default function PlayerItem({
       </p>
     </div>
   );
-}
+});
+
+export default PlayerItem;
