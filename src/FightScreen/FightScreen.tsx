@@ -2,8 +2,10 @@ import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import fight from "../assets/fight.png";
 import youWin from "../assets/you-win.png";
+import playerCard from "../assets/player-card.svg";
 import AnimatedText from "./AnimatedText";
 import PlayerItem from "./PlayerItem";
+import useImagePreloader from "../hooks/use-image-preloader";
 
 type Cell = {
   columnId: string;
@@ -23,10 +25,20 @@ export type Player = {
   detail: any;
 };
 
+type Round = {
+  attack_roll: number;
+  attacker: string;
+  damage_dealt: number;
+  defender: string;
+  evasion_roll: number;
+  is_critical: boolean;
+};
+
 type FightResult = {
   players: Player[];
   winner_image: string;
   winner_name: string;
+  rounds: Round[];
 };
 
 function getPublicImageUrl(imageName: string) {
@@ -38,8 +50,8 @@ function getPublicImageUrl(imageName: string) {
 }
 
 export default function FightScreen() {
-  const [gameRecords, setGameRecords] = useState<Record[]>();
-  const [characterRecords, setCharacterRecords] = useState<Record[]>();
+  const [gameRecords, setGameRecords] = useState<Record[]>([]);
+  const [characterRecords, setCharacterRecords] = useState<Record[]>([]);
   const [step, setStep] = useState(0);
   const stepRef = useRef(0);
   stepRef.current = step;
@@ -100,47 +112,66 @@ export default function FightScreen() {
   //   return () => clearInterval(interval);
   // }, []);
 
-  if (!gameRecords || !characterRecords) return null;
-
   const playRecord = gameRecords.sort(
     (p1, p2) =>
       new Date(p2.lastModifiedTime).getTime() -
       new Date(p1.lastModifiedTime).getTime()
-  )[0];
+  )?.[0];
+  const playCells = playRecord?.cells || [];
 
   const environmentImage =
-    playRecord.cells.find((cell) => cell.columnId === "environment_image")
-      ?.value[0] || "";
+    playCells.find((cell) => cell.columnId === "environment_image")?.value[0] ||
+    "";
   const environmentImageUrl = getPublicImageUrl(environmentImage);
 
   const storyText =
-    playRecord.cells.find((cell) => cell.columnId === "battle_story_generation")
+    playCells.find((cell) => cell.columnId === "battle_story_generation")
       ?.value || "";
 
   const fightResult: FightResult = JSON.parse(
-    playRecord.cells.find((cell) => cell.columnId === "fight_result")?.value ||
-      ""
-  ).result;
+    playCells.find((cell) => cell.columnId === "fight_result")?.value || "{}"
+  )?.result;
 
-  const players = fightResult.players.map((player) => {
+  const players = (fightResult?.players || []).map((player) => {
     const playerRecord = characterRecords.find((record) =>
-      record.cells.find((cell) => cell.value === player.name)
+      (record?.cells || []).find((cell) => cell?.value === player.name)
     );
     if (!playerRecord) return player;
 
-    const playerDetail = playerRecord.cells.reduce((result, cell) => {
+    const playerDetail = (playerRecord.cells || []).reduce((result, cell) => {
       return { ...result, [cell.columnId]: cell.value };
     }, {});
 
     return { ...player, detail: playerDetail };
   });
 
+  const playerImages =
+    players.length > 0
+      ? players.map((player) =>
+          getPublicImageUrl(player?.detail?.["fighter_image"]?.[0])
+        )
+      : [];
+
+  const { imagesPreloaded } = useImagePreloader([
+    fight,
+    playerCard,
+    youWin,
+    environmentImageUrl,
+    ...playerImages,
+  ]);
+  if (!imagesPreloaded)
+    return (
+      <span className="h-full flex justify-center items-center">
+        Loading...
+      </span>
+    );
+
   const winner = players.find(
     (player) => player.name === fightResult.winner_name
   );
 
   if (import.meta.env.DEV) {
-    console.log(fightResult);
+    console.log(fightResult?.rounds);
     console.log(players);
   }
 
@@ -157,7 +188,7 @@ export default function FightScreen() {
           Back
         </button>
         <button
-          onClick={() => setStep((currentStep) => Math.min(currentStep + 1, 3))}
+          onClick={() => setStep((currentStep) => Math.min(currentStep + 1, 4))}
           className="text-black border rounded bg-white p-2"
         >
           Next
@@ -165,11 +196,36 @@ export default function FightScreen() {
       </div>
       {step === 0 && (
         <motion.div className="border-[5px] rounded-[10px] border-[#D55CFF] px-8 py-6 w-1/2 bg-white">
-          <AnimatedText text={storyText} className="text-2xl" />
+          {storyText && <AnimatedText text={storyText} className="text-2xl" />}
         </motion.div>
       )}
       {step === 1 && (
         <div className="flex gap-[300px]">
+          {players.map((player, index) => (
+            <motion.div
+              key={player.name}
+              initial={{ y: -800 }}
+              animate={{ y: [null, 0] }}
+              transition={{
+                duration: 2,
+                type: "spring",
+                mass: 0.8,
+                delay: index * 2,
+              }}
+            >
+              <PlayerItem
+                name={player.name}
+                imageUrl={getPublicImageUrl(player.detail["fighter_image"][0])}
+                health={player.health}
+                strength={player.strength}
+                quote={player.detail["fighter_battle_cry"]}
+              />
+            </motion.div>
+          ))}
+        </div>
+      )}
+      {step === 2 && (
+        <div className="flex gap-[300px] relative justify-center items-center">
           {players.map((player) => (
             <PlayerItem
               key={player.name}
@@ -177,12 +233,17 @@ export default function FightScreen() {
               imageUrl={getPublicImageUrl(player.detail["fighter_image"][0])}
               health={player.health}
               strength={player.strength}
-              quote={player.detail["fighter_battle_cry"]}
             />
           ))}
+          <motion.img
+            src={fight}
+            className="absolute w-[300px]"
+            animate={{ scale: [1, 2, 1] }}
+            transition={{ duration: 1 }}
+          />
         </div>
       )}
-      {step === 2 && (
+      {step === 3 && (
         <div className="flex gap-[300px] relative">
           {players.map((player) => (
             <PlayerItem
@@ -193,15 +254,15 @@ export default function FightScreen() {
               strength={player.strength}
             />
           ))}
-          <img
-            src={fight}
-            className="absolute w-[300px] left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 "
-          />
         </div>
       )}
-      {step === 3 && (
+      {step === 4 && (
         <div className="flex flex-col items-center gap-10">
-          <img src={youWin} />
+          <motion.img
+            src={youWin}
+            animate={{ scale: [1, 2, 1] }}
+            transition={{ duration: 1 }}
+          />
           {winner && (
             <PlayerItem
               key={winner.name}
