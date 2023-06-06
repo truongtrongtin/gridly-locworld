@@ -25,7 +25,7 @@ export default function HallScreen({ onBack }: HallScreenProps) {
         <h2 className="text-5xl text-[#452B9F] text-center">HALL OF FAME</h2>
         <iframe
           className="h-full rounded"
-          src="https://app.gridly.com/shared/ff8GfSToVFf1UnQAvy1"
+          src="https://app.gridly.com/shared/7B3asAYVvjs1Kju33bH"
           // frameborder="0"
           // style="background: transparent; border: 1px solid #ccc;"
           allow="clipboard-read; clipboard-write"

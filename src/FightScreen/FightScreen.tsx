@@ -68,6 +68,7 @@ export default function FightScreen({ onHallClick }: FightScreenProps) {
   const [firstPlayerRef, animateFirstPlayer] = useAnimate<HTMLDivElement>();
   const [secondPlayerRef, animateSecondPlayer] = useAnimate<HTMLDivElement>();
   const [currentRound, setCurrentRound] = useState<Round>();
+  const [currentRoundIndex, setCurrentRoundIndex] = useState(-1);
   const [doneFighting, setDoneFighting] = useState(false);
 
   useEffect(() => {
@@ -240,6 +241,7 @@ export default function FightScreen({ onHallClick }: FightScreenProps) {
             }
           );
         }
+        setCurrentRoundIndex(i);
         setCurrentRound(round);
       }
       setDoneFighting(true);
@@ -273,6 +275,8 @@ export default function FightScreen({ onHallClick }: FightScreenProps) {
     firstPlayer.name === gameData.fight_result.winner_name
       ? firstPlayer
       : secondPlayer;
+  const isFinalRound =
+    currentRoundIndex === gameData.fight_result.rounds.length - 1;
 
   return (
     <div
@@ -388,6 +392,7 @@ export default function FightScreen({ onHallClick }: FightScreenProps) {
                 : ""
             }
             critical={currentRound?.is_critical}
+            dead={isFinalRound && firstPlayer.health < secondPlayer.health}
           />
           <PlayerItem
             ref={secondPlayerRef}
@@ -403,6 +408,7 @@ export default function FightScreen({ onHallClick }: FightScreenProps) {
                 : ""
             }
             critical={currentRound?.is_critical}
+            dead={isFinalRound && secondPlayer.health < firstPlayer.health}
           />
         </div>
       )}
