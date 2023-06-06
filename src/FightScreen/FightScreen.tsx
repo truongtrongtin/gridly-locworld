@@ -62,13 +62,12 @@ function getPublicImageUrl(imageName: string) {
 
 export default function FightScreen({ onHallClick }: FightScreenProps) {
   const [gameData, setGameData] = useState<GameData>();
+  const [step, setStep] = useState(import.meta.env.DEV ? 3 : 0);
   const [firstPlayer, setFirstPlayer] = useState<Player>();
   const [secondPlayer, setSecondPlayer] = useState<Player>();
   const [firstPlayerRef, animateFirstPlayer] = useAnimate<HTMLDivElement>();
   const [secondPlayerRef, animateSecondPlayer] = useAnimate<HTMLDivElement>();
-  const [step, setStep] = useState(import.meta.env.DEV ? 3 : 0);
-  const [firstDamage, setFirstDamage] = useState<number | undefined>();
-  const [secondDamage, setSecondDamage] = useState<number | undefined>();
+  const [currentRound, setCurrentRound] = useState<Round>();
   const [doneFighting, setDoneFighting] = useState(false);
 
   useEffect(() => {
@@ -198,7 +197,6 @@ export default function FightScreen({ onHallClick }: FightScreenProps) {
     const fight = async () => {
       for (let i = 0; i < rounds.length; i++) {
         const round = rounds[i];
-        console.log("round", round);
         if (round.attacker === firstPlayer?.name) {
           await animateFirstPlayer(
             firstPlayerRef.current,
@@ -210,8 +208,6 @@ export default function FightScreen({ onHallClick }: FightScreenProps) {
               duration: 0.3,
               delay: 2,
               onComplete: () => {
-                setFirstDamage(undefined);
-                setSecondDamage(round.damage_dealt);
                 setSecondPlayer((player) => {
                   if (!player) return;
                   return {
@@ -233,8 +229,6 @@ export default function FightScreen({ onHallClick }: FightScreenProps) {
               duration: 0.3,
               delay: 2,
               onComplete: () => {
-                setFirstDamage(round.damage_dealt);
-                setSecondDamage(undefined);
                 setFirstPlayer((player) => {
                   if (!player) return;
                   return {
@@ -246,6 +240,7 @@ export default function FightScreen({ onHallClick }: FightScreenProps) {
             }
           );
         }
+        setCurrentRound(round);
       }
       setDoneFighting(true);
     };
@@ -387,7 +382,12 @@ export default function FightScreen({ onHallClick }: FightScreenProps) {
             imageUrl={firstPlayerImageUrl}
             health={firstPlayer.health}
             strength={firstPlayer.strength}
-            hit={firstDamage !== undefined ? "-" + firstDamage.toString() : ""}
+            hit={
+              currentRound?.attacker === secondPlayer.name
+                ? "-" + currentRound.damage_dealt.toString()
+                : ""
+            }
+            critical={currentRound?.is_critical}
           />
           <PlayerItem
             ref={secondPlayerRef}
@@ -398,8 +398,11 @@ export default function FightScreen({ onHallClick }: FightScreenProps) {
             health={secondPlayer.health}
             strength={secondPlayer.strength}
             hit={
-              secondDamage !== undefined ? "-" + secondDamage.toString() : ""
+              currentRound?.attacker === firstPlayer.name
+                ? "-" + currentRound.damage_dealt.toString()
+                : ""
             }
+            critical={currentRound?.is_critical}
           />
         </div>
       )}

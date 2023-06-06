@@ -9,10 +9,11 @@ type PlayerItemProps = {
   strength: number;
   quote?: string;
   hit?: string;
+  critical?: boolean;
 };
 
 const PlayerItem = forwardRef<HTMLDivElement, PlayerItemProps>(function (
-  { name, imageUrl, health, strength, quote, hit },
+  { name, imageUrl, health, strength, quote, hit, critical },
   ref
 ) {
   return (
@@ -23,8 +24,13 @@ const PlayerItem = forwardRef<HTMLDivElement, PlayerItemProps>(function (
         </motion.div>
       )}
       {hit && (
-        <motion.div className="absolute -top-2 -translate-y-full left-[50%] -translate-x-1/2 border-[5px] rounded-[10px] border-[#D55CFF] px-8 py-6 bg-white text-3xl text-center text-red-500">
+        <motion.div
+          className={`absolute -top-2 -translate-y-full left-[50%] -translate-x-1/2 border-[5px] rounded-[10px] border-[#D55CFF] px-8 py-6 bg-white ${
+            critical ? "text-6xl" : "text-3xl"
+          } text-center text-red-500`}
+        >
           {hit}
+          {critical ? "!!!" : ""}
         </motion.div>
       )}
       <p className="absolute text-white top-[13px] left-[50%] -translate-x-1/2 text-xl whitespace-nowrap">
