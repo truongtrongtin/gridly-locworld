@@ -12,7 +12,7 @@ export type Screen = (typeof Screen)[keyof typeof Screen];
 
 function App() {
   const [screen, setScreen] = useState<Screen>(
-    import.meta.env.DEV ? Screen.HALL : Screen.START
+    import.meta.env.DEV ? Screen.FIGHT : Screen.START
   );
 
   const gotoHall = () => {
