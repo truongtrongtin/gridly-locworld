@@ -254,7 +254,7 @@ export default function FightScreen({ onHallClick }: FightScreenProps) {
 
   if (!imagesPreloaded || !gameData || !firstPlayer || !secondPlayer)
     return (
-      <span className="h-full flex justify-center items-center">
+      <span className="h-full flex justify-center items-center text-2xl">
         Loading...
       </span>
     );
