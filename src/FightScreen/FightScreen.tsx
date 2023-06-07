@@ -181,7 +181,7 @@ export default function FightScreen({ onHallClick }: FightScreenProps) {
     if (step === 2) {
       setTimeout(() => {
         setStep(3);
-      }, 5000);
+      }, 3000);
     }
 
     if (step === 3 && doneFighting) {
@@ -202,44 +202,34 @@ export default function FightScreen({ onHallClick }: FightScreenProps) {
           await animateFirstPlayer(
             firstPlayerRef.current,
             {
-              x: [null, 300, 0],
+              x: [0, 300, 0],
               ...(round.is_critical ? { scale: [1.5, 1.5, 1] } : {}),
             },
-            {
-              duration: 0.3,
-              delay: 2,
-              onComplete: () => {
-                setSecondPlayer((player) => {
-                  if (!player) return;
-                  return {
-                    ...player,
-                    health: player.health - round.damage_dealt,
-                  };
-                });
-              },
-            }
+            { duration: 0.3, delay: 2 }
           );
+          setSecondPlayer((player) => {
+            if (!player) return;
+            return {
+              ...player,
+              health: player.health - round.damage_dealt,
+            };
+          });
         } else {
           await animateSecondPlayer(
             secondPlayerRef.current,
             {
-              x: [null, -300, 0],
+              x: [0, -300, 0],
               ...(round.is_critical ? { scale: [1.5, 1.5, 1] } : {}),
             },
-            {
-              duration: 0.3,
-              delay: 2,
-              onComplete: () => {
-                setFirstPlayer((player) => {
-                  if (!player) return;
-                  return {
-                    ...player,
-                    health: player.health - round.damage_dealt,
-                  };
-                });
-              },
-            }
+            { duration: 0.3, delay: 2 }
           );
+          setFirstPlayer((player) => {
+            if (!player) return;
+            return {
+              ...player,
+              health: player.health - round.damage_dealt,
+            };
+          });
         }
         setCurrentRoundIndex(i);
         setCurrentRound(round);
@@ -258,11 +248,9 @@ export default function FightScreen({ onHallClick }: FightScreenProps) {
     firstPlayer?.name,
   ]);
 
-  if (import.meta.env.DEV) {
-    console.log("gameData", gameData);
-    console.log("firstPlayer", firstPlayer);
-    console.log("secondPlayer", secondPlayer);
-  }
+  // if (import.meta.env.DEV) {
+  //   console.log("gameData?.fight_result.rounds", gameData?.fight_result.rounds);
+  // }
 
   if (!imagesPreloaded || !gameData || !firstPlayer || !secondPlayer)
     return (
